@@ -67,7 +67,7 @@ def get_some_user():
             user["_id"] = str(user["_id"])
 
         tmp = "&11na&OKgOlRng1qWGribQuaHhkAmpDucaKl5F923&2103"
-        solver.decode_main(tmp)
+        solver.decode_main(tmp, "DucQuang12")
 
         return Response(
             response=json.dumps(data),
