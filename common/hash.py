@@ -26,7 +26,6 @@ def encode_main(password: str, order: constant.order) -> str:
     join: str = ""
 
     for index in range(math.ceil(number_of_collection)):
-        print(index)
         start_index = index * 3
         end_index = start_index + 3
         splited_password = password[start_index: end_index]
