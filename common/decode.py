@@ -64,21 +64,21 @@ def get_actual_hash_phrase(encode_arr: list[str], order: constant.order, order_a
         else:
             result.append(decode_phase)
 
-    re_align_decode(order_arr, result)
-    return ""
+    return re_align_decode(order_arr, result)
 
 
 def re_align_decode(order_arr: list[int], raw_result: list[str]) -> str:
     for index in range(len(order_arr) - 1):
-        for next_index in range(len(order_arr) - 1):
-            next_index += 1
+        temp = index + 1
+        for next_index in range(len(order_arr) - temp):
+            next_index = next_index + index + 1
             if order_arr[next_index] < order_arr[index]:
+                tmp = order_arr[index]
+                order_arr[index] = order_arr[next_index]
+                order_arr[next_index] = tmp
                 tmp = raw_result[index]
                 raw_result[index] = raw_result[next_index]
                 raw_result[next_index] = tmp
-
-    print(''.join(raw_result))
-
     return ''.join(raw_result)
 
 
