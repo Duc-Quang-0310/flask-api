@@ -22,6 +22,10 @@ db_connection = str(os.environ.get("DATABASE_CONNECTION"))
 order_natural = "natural"
 order_reverse = "reverse"
 
+cloudinary_name = str(os.environ.get("CLOUD_NAME"))
+cloudinary_api_key = str(os.environ.get("API_KEY"))
+cloudinary_api_secret = str(os.environ.get("API_SECRET"))
+
 spice = [
     "vbTcG7",
     "bWZ4IN",
