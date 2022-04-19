@@ -1,15 +1,23 @@
 from flask import Flask, Response, request
 from pymongo import MongoClient
-from bson.objectid import ObjectId
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 
 import common.constants as constants
 import common.hash as algorithm
 import common.decode as solver
 import json
+import os
+import cloudinary
+import cloudinary.uploader as uploader
+
 
 app = Flask(__name__)
 CORS(app)
+UPLOAD_FOLDER = './upload'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+cloudinary.config(cloud_name=constants.cloudinary_name,
+                  api_key=constants.cloudinary_api_key, api_secret=constants.cloudinary_api_secret)
 
 try:
     mongo = MongoClient(
@@ -21,132 +29,6 @@ try:
 except BaseException as error:
     print("ERROR - Cannot connect to mongo", error)
     raise
-
-#######################################################################
-
-
-@app.route("/users", methods=[constants.post])
-def create_user():
-    try:
-
-        user = {
-            "name": request.form['name'],
-            "lastName": request.form['lastName']
-        }
-
-        db_response = db.users.insert_one(user)
-        db_response.inserted_id
-
-        return Response(
-            response=json.dumps({
-                "message": "user created",
-                "id": f"{db_response.inserted_id}"
-            }),
-            status=200,
-            mimetype=f"{constants.normal_from}",
-        )
-
-    except error:
-        print('Error at create_user(): ', error)
-        return Response(
-            status=500,
-            mimetype=f"{constants.normal_from}",
-            response=json.dumps({
-                "message": f"{constants.internal_server_error}",
-                "reason": f"{error}"
-            }),
-        )
-
-#######################################################################
-
-
-@app.route("/users", methods=[constants.get])
-def get_some_user():
-    try:
-        data = list(db.users.find())
-
-        for user in data:
-            user["_id"] = str(user["_id"])
-
-        tmp = "&11na&OKgOlRng1qWGribQuaHhkAmpDucaKl5F923&2103"
-        solver.decode_main(tmp, "DucQuang12")
-
-        return Response(
-            response=json.dumps(data),
-            status=200,
-            mimetype=f"{constants.normal_from}",
-        )
-    except error:
-        print('Error at get_some_user(): ', error)
-        return Response(
-            status=500,
-            mimetype=f"{constants.normal_from}",
-            response=json.dumps({
-                "message": f"{constants.internal_server_error}",
-                "reason": f"{error}"
-            }),
-        )
-
-#######################################################################
-
-
-@app.route("/users/<id>", methods=[constants.patch])
-def update_user(id):
-    try:
-        db_response = db.users.update_one(
-            {"_id": ObjectId(id)},
-            {"$set": {"name": request.form["name"]}}
-        )
-
-        for attr in dir(db_response):
-            print(f"{attr}")
-
-        return Response(
-            response=json.dumps({
-                "message": "Updated"
-            }),
-            status=200,
-            mimetype=f"{constants.normal_from}",
-        )
-    except error:
-        print('Error at update_user(): ', error)
-        return Response(
-            status=500,
-            mimetype=f"{constants.normal_from}",
-            response=json.dumps({
-                "message": f"{constants.internal_server_error}",
-                "reason": f"{error}"
-            }),
-        )
-
-#######################################################################
-
-
-@app.route("/users/<id>", methods=[constants.delete])
-def delete_user(id):
-    try:
-        db_response = db.users.delete_one({"_id": ObjectId(id)})
-
-        for attr in dir(db_response):
-            print(f"{attr}")
-
-        return Response(
-            response=json.dumps({
-                "message": "User Deleted"
-            }),
-            status=200,
-            mimetype=f"{constants.normal_from}",
-        )
-    except error:
-        print('Error at update_user(): ', error)
-        return Response(
-            status=500,
-            mimetype=f"{constants.normal_from}",
-            response=json.dumps({
-                "message": f"{constants.internal_server_error}",
-                "reason": f"{error}"
-            }),
-        )
 
 #######################################################################
 
@@ -295,6 +177,91 @@ def update_password():
         )
     except error:
         print('Error at update_password(): ', error)
+        return Response(
+            status=500,
+            mimetype=f"{constants.normal_from}",
+            response=json.dumps({
+                "message": f"{constants.internal_server_error}",
+                "reason": f"{error}"
+            }),
+        )
+
+
+#######################################################################
+
+@app.route("/account/get-all-encode", methods=[constants.get])
+@cross_origin()
+def get_encode():
+    try:
+        body = request.get_json()
+        resource_type = body['type']
+        user_id = body['userId']
+        output = []
+
+        db_records = list(db.encode.find(
+            {"type": resource_type, "userId": user_id}))
+
+        for record in db_records:
+            output.append(record['data'])
+
+        return Response(
+            response=json.dumps({
+                "result": output
+            }),
+            status=200,
+            mimetype=f"{constants.normal_from}",
+        )
+
+    except error:
+        print('Error at get_encode(): ', error)
+        return Response(
+            status=500,
+            mimetype=f"{constants.normal_from}",
+            response=json.dumps({
+                "message": f"{constants.internal_server_error}",
+                "reason": f"{error}"
+            }),
+        )
+
+
+#######################################################################
+@app.route("/account/encode-picture", methods=[constants.post])
+@cross_origin()
+def file_receiver():
+    try:
+        # step one: get picture from request
+        picture = request.files.get('image')
+        user_id = request.form.get('userId')
+        path = os.path.join(app.config['UPLOAD_FOLDER'], picture.filename)
+        picture.save(path)
+
+        # step two: encode picture then upload to cloudinary database
+        # TODO: encode part start here
+        upload_result = uploader.upload(path)
+        image_link = upload_result.get('url')
+        # encode part end here
+
+        # step three: store it to database
+        insert_info = {
+            "type": "image",
+            "userId": user_id,
+            "data": image_link
+        }
+        db.encode.insert_one(insert_info)
+
+        # step four: remove local image due to performance
+        os.remove(os.path.join(app.config['UPLOAD_FOLDER'], picture.filename))
+
+        return Response(
+            response=json.dumps({
+                "imageLink": f"{image_link}"
+            }),
+            status=200,
+            mimetype=f"{constants.normal_from}",
+        )
+
+    except error:
+        print('Error at file_receiver(): ', error)
         return Response(
             status=500,
             mimetype=f"{constants.normal_from}",
