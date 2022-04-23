@@ -2,10 +2,7 @@ from turtle import position
 from flask import Flask, Response, request
 from pymongo import MongoClient
 from flask_cors import CORS, cross_origin
-
-from PIL import Image, ImageDraw, ImageFont
 import RSA
-
 import common.constants as constants
 import common.hash as algorithm
 import common.decode as solver
@@ -13,6 +10,7 @@ import json
 import os
 import cloudinary
 import cloudinary.uploader as uploader
+import common.watermark as watermark
 
 
 app = Flask(__name__)
@@ -230,27 +228,6 @@ def get_encode():
 
 #######################################################################
 
-# FOR THE ENCRYPTIONS
-
-def add_water_mark(path, text_to_add):
-    image = Image.open(path)
-    watermark_image = image.copy()
-
-    draw = ImageDraw.Draw(watermark_image)
-
-    #choose a font and size
-    font = ImageFont.truetype("arial.ttf", 50)
-
-    #add water mark
-    position(25, 25)
-    color = (0,0,0)
-
-    draw.text(position, text_to_add, color, font=font)
-    
-    return watermark_image
-
-
-
 
 @app.route("/account/encode-picture", methods=[constants.post])
 @cross_origin()
@@ -260,28 +237,26 @@ def file_receiver():
         picture = request.files.get('image')
         user_id = request.form.get('userId')
         water_mark = request.form.get('waterMark')
-        app.logger.info(water_mark)
+
         path = os.path.join(app.config['UPLOAD_FOLDER'], picture.filename)
         picture.save(path)
 
-        #Add the water mark
-        img = add_water_mark(path, water_mark)
-        os.remove(os.path.join(app.config['UPLOAD_FOLDER'], picture.filename))
+        # Add the water mark
+        img = watermark.add_water_mark(path, water_mark)
         img.save(path)
+        os.remove(os.path.join(app.config['UPLOAD_FOLDER'], picture.filename))
 
         # step two: encode picture then upload to cloudinary database
-        # TODO: encode part start here
+        # QUESTION: is this rewrite image on the current? folder
         upload_result = uploader.upload(path)
         image_link = upload_result.get('url')
 
-        #RSA
-        public_key, private_key = RSA.generate_keys()
+        # RSA
+        # public_key, private_key = RSA.generate_keys()
         # print("Public key:", public_key)
         # print("Private key:", private_key)
 
-        image_link_encoded = RSA.encode(image_link, public_key)
-
-        # encode part end here
+        # image_link_encoded = RSA.encode(image_link, public_key)
 
         # step three: store it to database
         if user_id != "none" or user_id != None:
@@ -292,13 +267,9 @@ def file_receiver():
             }
             db.encode.insert_one(insert_info)
 
-        # step four: remove local image due to performance
-        os.remove(os.path.join(app.config['UPLOAD_FOLDER'], picture.filename))
-
         return Response(
             response=json.dumps({
-                "imageLink": image_link_encoded,
-                "privateKey" : private_key
+                "imageLink": image_link,
             }),
             status=200,
             mimetype=f"{constants.normal_from}",
