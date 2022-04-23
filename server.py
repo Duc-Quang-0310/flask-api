@@ -242,7 +242,7 @@ def add_water_mark(path, text_to_add):
     font = ImageFont.truetype("arial.ttf", 50)
 
     #add water mark
-    position(25, 25)
+    position = (25, 25)
     color = (0,0,0)
 
     draw.text(position, text_to_add, color, font=font)
