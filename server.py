@@ -279,7 +279,6 @@ def file_receiver():
         # print("Public key:", public_key)
         # print("Private key:", private_key)
 
-
         image_link_encoded = RSA.encode(image_link, public_key)
 
         # encode part end here
