@@ -1,4 +1,3 @@
-from turtle import position
 from flask import Flask, Response, request
 from pymongo import MongoClient
 from flask_cors import CORS, cross_origin
