@@ -1,6 +1,10 @@
+from turtle import position
 from flask import Flask, Response, request
 from pymongo import MongoClient
 from flask_cors import CORS, cross_origin
+
+from PIL import Image, ImageDraw, ImageFont
+import RSA
 
 import common.constants as constants
 import common.hash as algorithm
@@ -225,6 +229,29 @@ def get_encode():
 
 
 #######################################################################
+
+# FOR THE ENCRYPTIONS
+
+def add_water_mark(path, text_to_add):
+    image = Image.open(path)
+    watermark_image = image.copy()
+
+    draw = ImageDraw.Draw(watermark_image)
+
+    #choose a font and size
+    font = ImageFont.truetype("arial.ttf", 50)
+
+    #add water mark
+    position(25, 25)
+    color = (0,0,0)
+
+    draw.text(position, text_to_add, color, font=font)
+    
+    return watermark_image
+
+
+
+
 @app.route("/account/encode-picture", methods=[constants.post])
 @cross_origin()
 def file_receiver():
@@ -237,10 +264,24 @@ def file_receiver():
         path = os.path.join(app.config['UPLOAD_FOLDER'], picture.filename)
         picture.save(path)
 
+        #Add the water mark
+        img = add_water_mark(path, water_mark)
+        os.remove(os.path.join(app.config['UPLOAD_FOLDER'], picture.filename))
+        img.save(path)
+
         # step two: encode picture then upload to cloudinary database
         # TODO: encode part start here
         upload_result = uploader.upload(path)
         image_link = upload_result.get('url')
+
+        #RSA
+        public_key, private_key = RSA.generate_keys()
+        # print("Public key:", public_key)
+        # print("Private key:", private_key)
+
+
+        image_link_encoded = RSA.encode(image_link, public_key)
+
         # encode part end here
 
         # step three: store it to database
@@ -257,7 +298,8 @@ def file_receiver():
 
         return Response(
             response=json.dumps({
-                "imageLink": f"{image_link}"
+                "imageLink": image_link_encoded,
+                "privateKey" : private_key
             }),
             status=200,
             mimetype=f"{constants.normal_from}",
