@@ -232,6 +232,7 @@ def get_encode():
 @app.route("/account/encode-picture", methods=[constants.post])
 @cross_origin()
 def file_receiver():
+
     try:
         # step one: get picture from request
         picture = request.files.get('image')
@@ -242,9 +243,9 @@ def file_receiver():
         picture.save(path)
 
         # Add the water mark
-        img = watermark.add_water_mark(path, water_mark)
-        img.save(path)
-        os.remove(os.path.join(app.config['UPLOAD_FOLDER'], picture.filename))
+        # img = watermark.add_water_mark(path, water_mark)
+        # img.save(path)
+        # os.remove(os.path.join(app.config['UPLOAD_FOLDER'], picture.filename))
 
         # step two: encode picture then upload to cloudinary database
         # QUESTION: is this rewrite image on the current? folder
@@ -259,13 +260,13 @@ def file_receiver():
         # image_link_encoded = RSA.encode(image_link, public_key)
 
         # step three: store it to database
-        if user_id != "none" or user_id != None:
-            insert_info = {
-                "type": "image",
-                "userId": user_id,
-                "data": image_link
-            }
-            db.encode.insert_one(insert_info)
+        # if user_id != "none" or user_id != None:
+        #     insert_info = {
+        #         "type": "image",
+        #         "userId": user_id,
+        #         "data": image_link
+        #     }
+        #     db.encode.insert_one(insert_info)
 
         return Response(
             response=json.dumps({
@@ -277,6 +278,63 @@ def file_receiver():
 
     except error:
         print('Error at file_receiver(): ', error)
+        return Response(
+            status=500,
+            mimetype=f"{constants.normal_from}",
+            response=json.dumps({
+                "message": f"{constants.internal_server_error}",
+                "reason": f"{error}"
+            }),
+        )
+
+#######################################################################
+
+
+@app.route("/account/encode-text", methods=[constants.post])
+def encode_text():
+    try:
+        body = request.get_json()
+        text = body['text']
+
+        return Response(
+            response=json.dumps({
+                "string": text
+            }),
+            status=200,
+            mimetype=f"{constants.normal_from}",
+        )
+
+    except error:
+        print('Error at encode_text(): ', error)
+        return Response(
+            status=500,
+            mimetype=f"{constants.normal_from}",
+            response=json.dumps({
+                "message": f"{constants.internal_server_error}",
+                "reason": f"{error}"
+            }),
+        )
+
+
+#######################################################################
+
+
+@app.route("/account/decode-text", methods=[constants.post])
+def decode_text():
+    try:
+        body = request.get_json()
+        text = body['text']
+
+        return Response(
+            response=json.dumps({
+                "string": text
+            }),
+            status=200,
+            mimetype=f"{constants.normal_from}",
+        )
+
+    except error:
+        print('Error at decode_text(): ', error)
         return Response(
             status=500,
             mimetype=f"{constants.normal_from}",
