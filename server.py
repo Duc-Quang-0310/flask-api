@@ -272,32 +272,33 @@ def file_receiver():
         # TODO: encode part start here
         upload_result = uploader.upload(path)
         image_link = upload_result.get('url')
+        print("Image Link:", image_link)
 
         #RSA
-        public_key, private_key = RSA.generate_keys()
+        #public_key, private_key = RSA.generate_keys()
         # print("Public key:", public_key)
         # print("Private key:", private_key)
 
-        image_link_encoded = RSA.encode(image_link, public_key)
+        #image_link_encoded = RSA.encode(image_link, public_key)
 
         # encode part end here
 
         # step three: store it to database
-        if user_id != "none" or user_id != None:
-            insert_info = {
-                "type": "image",
-                "userId": user_id,
-                "data": image_link
-            }
-            db.encode.insert_one(insert_info)
+        # if user_id != "none" or user_id != None:
+        #     insert_info = {
+        #         "type": "image",
+        #         "userId": user_id,
+        #         "data": image_link
+        #     }
+        #     db.encode.insert_one(insert_info)
 
         # step four: remove local image due to performance
         os.remove(os.path.join(app.config['UPLOAD_FOLDER'], picture.filename))
 
         return Response(
             response=json.dumps({
-                "imageLink": image_link_encoded,
-                "privateKey" : private_key
+                "imageLink": image_link,
+                #"privateKey" : private_key
             }),
             status=200,
             mimetype=f"{constants.normal_from}",
