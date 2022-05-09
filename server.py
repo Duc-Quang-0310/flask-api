@@ -1,3 +1,4 @@
+from tokenize import Name
 from flask import Flask, Response, request
 from pymongo import MongoClient
 from flask_cors import CORS, cross_origin
@@ -75,14 +76,14 @@ def logging():
             status=200,
             mimetype=f"{constants.normal_from}",
         )
-    except error:
-        print('Error at logging(): ', error)
+    except NameError:
+        print('Error at logging(): ', NameError.name)
         return Response(
             status=500,
             mimetype=f"{constants.normal_from}",
             response=json.dumps({
                 "message": f"{constants.internal_server_error}",
-                "reason": f"{error}"
+                "reason": f"{NameError.name}"
             }),
         )
 
@@ -132,14 +133,14 @@ def new_account():
             status=200,
             mimetype=f"{constants.normal_from}",
         )
-    except error:
-        print('Error at new_account(): ', error)
+    except NameError:
+        print('Error at new_account(): ', NameError.name)
         return Response(
             status=500,
             mimetype=f"{constants.normal_from}",
             response=json.dumps({
                 "message": f"{constants.internal_server_error}",
-                "reason": f"{error}"
+                "reason": f"{NameError.name}"
             }),
         )
 
@@ -178,14 +179,14 @@ def update_password():
             status=200,
             mimetype=f"{constants.normal_from}",
         )
-    except error:
-        print('Error at update_password(): ', error)
+    except NameError:
+        print('Error at update_password(): ', NameError.name)
         return Response(
             status=500,
             mimetype=f"{constants.normal_from}",
             response=json.dumps({
                 "message": f"{constants.internal_server_error}",
-                "reason": f"{error}"
+                "reason": f"{NameError.name}"
             }),
         )
 
@@ -215,14 +216,14 @@ def get_encode():
             mimetype=f"{constants.normal_from}",
         )
 
-    except error:
-        print('Error at get_encode(): ', error)
+    except NameError:
+        print('Error at get_encode(): ', NameError.name)
         return Response(
             status=500,
             mimetype=f"{constants.normal_from}",
             response=json.dumps({
                 "message": f"{constants.internal_server_error}",
-                "reason": f"{error}"
+                "reason": f"{NameError.name}"
             }),
         )
 
@@ -304,17 +305,56 @@ def file_receiver():
             mimetype=f"{constants.normal_from}",
         )
 
-    except error:
-        print('Error at file_receiver(): ', error)
+    except NameError:
+        print('Error at file_receiver(): ', NameError.name)
         return Response(
             status=500,
             mimetype=f"{constants.normal_from}",
             response=json.dumps({
                 "message": f"{constants.internal_server_error}",
-                "reason": f"{error}"
+                "reason": f"{NameError.name}"
             }),
         )
 
+
+
+#TO test RSA encryption and decryption
+# @app.route('/rsa-test', methods=[constants.post])
+# #@cross_origin
+# def rsa_test():
+#     try:
+#         message = request.form.get('message')
+#         temp = request.form.get('num')
+
+#         #RSA
+#         public_key, private_key = RSA.generate_keys()
+#         # print("Public key:", public_key)
+#         # print("Private key:", private_key)
+
+#         msg_encoded = RSA.encode(message , public_key)
+#         msg_decoded = RSA.decode(msg_encoded, private_key)
+
+#         return Response(
+#             response=json.dumps({
+#                 "original" : message,
+#                 "encrypted" : msg_encoded,
+#                 "decrypted" : msg_decoded,
+#                 "public_key" : public_key,
+#                 'private_key': private_key
+#             }),
+#             status=200,
+#             mimetype=f"{constants.normal_from}",
+#         )
+
+#     except NameError:
+#         return Response(
+#             status=500,
+#             mimetype=f"{constants.normal_from}",
+#             response=json.dumps({
+#                 "message":NameError.name,
+#             }),
+#         )
+        
 
 #######################################################################
 if __name__ == "__main__":
