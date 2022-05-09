@@ -1,3 +1,4 @@
+from tokenize import Name
 from flask import Flask, Response, request
 from pymongo import MongoClient
 from flask_cors import CORS, cross_origin
@@ -75,14 +76,14 @@ def logging():
             status=200,
             mimetype=f"{constants.normal_from}",
         )
-    except error:
-        print('Error at logging(): ', error)
+    except NameError:
+        print('Error at logging(): ', NameError.name)
         return Response(
             status=500,
             mimetype=f"{constants.normal_from}",
             response=json.dumps({
                 "message": f"{constants.internal_server_error}",
-                "reason": f"{error}"
+                "reason": f"{NameError.name}"
             }),
         )
 
@@ -132,14 +133,14 @@ def new_account():
             status=200,
             mimetype=f"{constants.normal_from}",
         )
-    except error:
-        print('Error at new_account(): ', error)
+    except NameError:
+        print('Error at new_account(): ', NameError.name)
         return Response(
             status=500,
             mimetype=f"{constants.normal_from}",
             response=json.dumps({
                 "message": f"{constants.internal_server_error}",
-                "reason": f"{error}"
+                "reason": f"{NameError.name}"
             }),
         )
 
@@ -178,14 +179,14 @@ def update_password():
             status=200,
             mimetype=f"{constants.normal_from}",
         )
-    except error:
-        print('Error at update_password(): ', error)
+    except NameError:
+        print('Error at update_password(): ', NameError.name)
         return Response(
             status=500,
             mimetype=f"{constants.normal_from}",
             response=json.dumps({
                 "message": f"{constants.internal_server_error}",
-                "reason": f"{error}"
+                "reason": f"{NameError.name}"
             }),
         )
 
@@ -215,14 +216,14 @@ def get_encode():
             mimetype=f"{constants.normal_from}",
         )
 
-    except error:
-        print('Error at get_encode(): ', error)
+    except NameError:
+        print('Error at get_encode(): ', NameError.name)
         return Response(
             status=500,
             mimetype=f"{constants.normal_from}",
             response=json.dumps({
                 "message": f"{constants.internal_server_error}",
-                "reason": f"{error}"
+                "reason": f"{NameError.name}"
             }),
         )
 
@@ -237,18 +238,16 @@ def add_water_mark(path, text_to_add):
 
     draw = ImageDraw.Draw(watermark_image)
 
-    #choose a font and size
+    # choose a font and size
     font = ImageFont.truetype("arial.ttf", 50)
 
-    #add water mark
+    # add water mark
     position = (25, 25)
-    color = (0,0,0)
+    color = (0, 0, 0)
 
     draw.text(position, text_to_add, color, font=font)
-    
+
     return watermark_image
-
-
 
 
 @app.route("/account/encode-picture", methods=[constants.post])
@@ -263,34 +262,22 @@ def file_receiver():
         path = os.path.join(app.config['UPLOAD_FOLDER'], picture.filename)
         picture.save(path)
 
-        #Add the water mark
+        # Add the water mark
         img = add_water_mark(path, water_mark)
-        os.remove(os.path.join(app.config['UPLOAD_FOLDER'], picture.filename))
         img.save(path)
 
         # step two: encode picture then upload to cloudinary database
-        # TODO: encode part start here
         upload_result = uploader.upload(path)
         image_link = upload_result.get('url')
-        print("Image Link:", image_link)
-
-        #RSA
-        #public_key, private_key = RSA.generate_keys()
-        # print("Public key:", public_key)
-        # print("Private key:", private_key)
-
-        #image_link_encoded = RSA.encode(image_link, public_key)
-
-        # encode part end here
 
         # step three: store it to database
-        # if user_id != "none" or user_id != None:
-        #     insert_info = {
-        #         "type": "image",
-        #         "userId": user_id,
-        #         "data": image_link
-        #     }
-        #     db.encode.insert_one(insert_info)
+        if user_id != "none" or user_id != None:
+            insert_info = {
+                "type": "image",
+                "userId": user_id,
+                "data": image_link
+            }
+            db.encode.insert_one(insert_info)
 
         # step four: remove local image due to performance
         os.remove(os.path.join(app.config['UPLOAD_FOLDER'], picture.filename))
@@ -298,23 +285,60 @@ def file_receiver():
         return Response(
             response=json.dumps({
                 "imageLink": image_link,
-                #"privateKey" : private_key
+                # "privateKey" : private_key
             }),
             status=200,
             mimetype=f"{constants.normal_from}",
         )
 
-    except error:
-        print('Error at file_receiver(): ', error)
+    except NameError:
+        print('Error at file_receiver(): ', NameError.name)
         return Response(
             status=500,
             mimetype=f"{constants.normal_from}",
             response=json.dumps({
                 "message": f"{constants.internal_server_error}",
-                "reason": f"{error}"
+                "reason": f"{NameError.name}"
             }),
         )
 
+
+# TO test RSA encryption and decryption
+# @app.route('/rsa-test', methods=[constants.post])
+# #@cross_origin
+# def rsa_test():
+#     try:
+#         message = request.form.get('message')
+#         temp = request.form.get('num')
+
+#         #RSA
+#         public_key, private_key = RSA.generate_keys()
+#         # print("Public key:", public_key)
+#         # print("Private key:", private_key)
+
+#         msg_encoded = RSA.encode(message , public_key)
+#         msg_decoded = RSA.decode(msg_encoded, private_key)
+
+#         return Response(
+#             response=json.dumps({
+#                 "original" : message,
+#                 "encrypted" : msg_encoded,
+#                 "decrypted" : msg_decoded,
+#                 "public_key" : public_key,
+#                 'private_key': private_key
+#             }),
+#             status=200,
+#             mimetype=f"{constants.normal_from}",
+#         )
+
+#     except NameError:
+#         return Response(
+#             status=500,
+#             mimetype=f"{constants.normal_from}",
+#             response=json.dumps({
+#                 "message":NameError.name,
+#             }),
+#         )
 
 #######################################################################
 if __name__ == "__main__":
