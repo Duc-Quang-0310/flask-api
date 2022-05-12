@@ -2,10 +2,7 @@ from tokenize import Name
 from flask import Flask, Response, request
 from pymongo import MongoClient
 from flask_cors import CORS, cross_origin
-
-from PIL import Image, ImageDraw, ImageFont
 import RSA
-
 import common.constants as constants
 import common.hash as algorithm
 import common.decode as solver
@@ -13,6 +10,7 @@ import json
 import os
 import cloudinary
 import cloudinary.uploader as uploader
+import common.watermark as watermark
 
 
 app = Flask(__name__)
@@ -255,34 +253,33 @@ def add_water_mark(path, text_to_add):
 @app.route("/account/encode-picture", methods=[constants.post])
 @cross_origin()
 def file_receiver():
+
     try:
         # step one: get picture from request
         picture = request.files.get('image')
         user_id = request.form.get('userId')
         water_mark = request.form.get('waterMark')
-        app.logger.info(water_mark)
+
         path = os.path.join(app.config['UPLOAD_FOLDER'], picture.filename)
         picture.save(path)
 
-        #Add the water mark
-        img = add_water_mark(path, water_mark)
-        os.remove(os.path.join(app.config['UPLOAD_FOLDER'], picture.filename))
-        img.save(path)
+        # Add the water mark
+        # img = watermark.add_water_mark(path, water_mark)
+        # img.save(path)
+        # os.remove(os.path.join(app.config['UPLOAD_FOLDER'], picture.filename))
 
         # step two: encode picture then upload to cloudinary database
-        # TODO: encode part start here
+        # QUESTION: is this rewrite image on the current? folder
         upload_result = uploader.upload(path)
         image_link = upload_result.get('url')
         print("Image Link:", image_link)
 
-        #RSA
-        #public_key, private_key = RSA.generate_keys()
+        # RSA
+        # public_key, private_key = RSA.generate_keys()
         # print("Public key:", public_key)
         # print("Private key:", private_key)
 
-        #image_link_encoded = RSA.encode(image_link, public_key)
-
-        # encode part end here
+        # image_link_encoded = RSA.encode(image_link, public_key)
 
         # step three: store it to database
         # if user_id != "none" or user_id != None:
@@ -299,7 +296,6 @@ def file_receiver():
         return Response(
             response=json.dumps({
                 "imageLink": image_link,
-                #"privateKey" : private_key
             }),
             status=200,
             mimetype=f"{constants.normal_from}",
@@ -313,6 +309,63 @@ def file_receiver():
             response=json.dumps({
                 "message": f"{constants.internal_server_error}",
                 "reason": f"{NameError.name}"
+            }),
+        )
+
+#######################################################################
+
+
+@app.route("/account/encode-text", methods=[constants.post])
+def encode_text():
+    try:
+        body = request.get_json()
+        text = body['text']
+
+        return Response(
+            response=json.dumps({
+                "string": text
+            }),
+            status=200,
+            mimetype=f"{constants.normal_from}",
+        )
+
+    except error:
+        print('Error at encode_text(): ', error)
+        return Response(
+            status=500,
+            mimetype=f"{constants.normal_from}",
+            response=json.dumps({
+                "message": f"{constants.internal_server_error}",
+                "reason": f"{error}"
+            }),
+        )
+
+
+#######################################################################
+
+
+@app.route("/account/decode-text", methods=[constants.post])
+def decode_text():
+    try:
+        body = request.get_json()
+        text = body['text']
+
+        return Response(
+            response=json.dumps({
+                "string": text
+            }),
+            status=200,
+            mimetype=f"{constants.normal_from}",
+        )
+
+    except error:
+        print('Error at decode_text(): ', error)
+        return Response(
+            status=500,
+            mimetype=f"{constants.normal_from}",
+            response=json.dumps({
+                "message": f"{constants.internal_server_error}",
+                "reason": f"{error}"
             }),
         )
 
