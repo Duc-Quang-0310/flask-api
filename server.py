@@ -11,6 +11,7 @@ import os
 import cloudinary
 import cloudinary.uploader as uploader
 import common.watermark as watermark
+from PIL import Image, ImageDraw, ImageFont
 
 
 app = Flask(__name__)
@@ -230,22 +231,27 @@ def get_encode():
 
 # FOR THE ENCRYPTIONS
 
-def add_water_mark(path, text_to_add):
-    image = Image.open(path)
-    watermark_image = image.copy()
+def addWaterMark(imgLink, text):
+    base = Image.open(imgLink).convert('RGBA')
+    width, height = base.size
 
-    draw = ImageDraw.Draw(watermark_image)
+    # make a blank image for the text, initialized to transparent text color
+    txt = Image.new('RGBA', base.size, (255,255,255,0))
 
-    # choose a font and size
-    font = ImageFont.truetype("arial.ttf", 50)
+    # get a font
+    fnt = ImageFont.truetype('arial.ttf', 40)
+    # get a drawing context
+    d = ImageDraw.Draw(txt)
 
-    # add water mark
-    position = (25, 25)
-    color = (0, 0, 0)
+    x = width/2
+    y = height/2
 
-    draw.text(position, text_to_add, color, font=font)
+    # draw text, half opacity
+    d.text((x,y), text, font=fnt, fill=(255,220,255,190))
+    txt = txt.rotate(45)
 
-    return watermark_image
+    out = Image.alpha_composite(base, txt)
+    return out
 
 
 @app.route("/account/encode-picture", methods=[constants.post])
@@ -262,7 +268,7 @@ def file_receiver():
         picture.save(path)
 
         # Add the water mark
-        img = add_water_mark(path, water_mark)
+        img = addWaterMark(path, water_mark)
         img.save(path)
 
         # step two: encode picture then upload to cloudinary database
