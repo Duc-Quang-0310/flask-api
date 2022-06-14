@@ -10,6 +10,19 @@ def ceaser_encrypt(text, key):
             result =  result + char
     return result
 
+def ceaser_decrypt(text, key):
+    result = ""
+    for i in range(len(text)):
+        char = text[i]
+        if "A" <= char <= "Z":
+            result = result + chr((ord(char) - key - 65) % 26 + 65)
+        elif 97 <= ord(char) <= 122:
+            result = result + chr((ord(char) - key - 97) % 26 + 97)
+        else:
+            result =  result + char
+    return result
+
+
 def ceaser_decrypt_hack(text, k):
     KYTU = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
     decryped_msg = []

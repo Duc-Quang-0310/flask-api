@@ -387,7 +387,7 @@ def decode_text():
         key = request.form.get('key')
         k = int(key)
 
-        decoded_msg = cipher.ceaser_decrypt_hack(text, k)
+        decoded_msg = cipher.ceaser_decrypt(text, k)
 
         return Response(
             response=json.dumps({
