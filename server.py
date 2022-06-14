@@ -12,7 +12,7 @@ import cloudinary
 import cloudinary.uploader as uploader
 import common.watermark as watermark
 from PIL import Image, ImageDraw, ImageFont
-
+import Ceaser_cipher as cipher
 
 app = Flask(__name__)
 CORS(app)
@@ -312,12 +312,16 @@ def file_receiver():
 @app.route("/account/encode-text", methods=[constants.post])
 def encode_text():
     try:
-        body = request.get_json()
-        text = body['text']
+        #body = request.get_json()
+        text = request.form.get('text')
+        key = request.form.get('key')
+        k = int(key)
+
+        encoded_msg = cipher.ceaser_encrypt(text, k)
 
         return Response(
             response=json.dumps({
-                "string": text
+                "string": encoded_msg
             }),
             status=200,
             mimetype=f"{constants.normal_from}",
@@ -378,12 +382,16 @@ def encode_text():
 @app.route("/account/decode-text", methods=[constants.post])
 def decode_text():
     try:
-        body = request.get_json()
-        text = body['text']
+        #body = request.get_json()
+        text = request.form.get('text')
+        key = request.form.get('key')
+        k = int(key)
+
+        decoded_msg = cipher.ceaser_decrypt_hack(text, k)
 
         return Response(
             response=json.dumps({
-                "string": text
+                "string": decoded_msg
             }),
             status=200,
             mimetype=f"{constants.normal_from}",
