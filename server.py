@@ -239,16 +239,16 @@ def addWaterMark(imgLink, text):
     txt = Image.new('RGBA', base.size, (255,255,255,0))
 
     # get a font
-    fnt = ImageFont.truetype('arial.ttf', 40)
+    fnt = ImageFont.truetype('arial.ttf', 70)
     # get a drawing context
     d = ImageDraw.Draw(txt)
 
-    x = width/2
+    x = 80
     y = height/2
 
     # draw text, half opacity
-    d.text((x,y), text, font=fnt, fill=(255,220,255,190))
-    txt = txt.rotate(45)
+    d.text((x,y), text, font=fnt, fill=(255,255,255,180))
+    txt = txt.rotate(30)
 
     out = Image.alpha_composite(base, txt)
     return out
@@ -264,7 +264,7 @@ def file_receiver():
         user_id = request.form.get('userId')
         water_mark = request.form.get('waterMark')
 
-        path = os.path.join(app.config['UPLOAD_FOLDER'], picture.filename)
+        path = os.path.join(app.config['UPLOAD_FOLDER'], picture.filename + '.png')
         picture.save(path)
 
         # Add the water mark
@@ -285,7 +285,7 @@ def file_receiver():
             db.encode.insert_one(insert_info)
 
         # step four: remove local image due to performance
-        os.remove(os.path.join(app.config['UPLOAD_FOLDER'], picture.filename))
+        os.remove(os.path.join(app.config['UPLOAD_FOLDER'], picture.filename + '.png'))
 
         return Response(
             response=json.dumps({
@@ -397,14 +397,14 @@ def decode_text():
             mimetype=f"{constants.normal_from}",
         )
 
-    except error:
-        print('Error at decode_text(): ', error)
+    except NameError:
+        print('Error at decode_text(): ', NameError.name)
         return Response(
             status=500,
             mimetype=f"{constants.normal_from}",
             response=json.dumps({
                 "message": f"{constants.internal_server_error}",
-                "reason": f"{error}"
+                "reason": f"{NameError.name}"
             }),
         )
 

@@ -23,7 +23,7 @@ def ceaser_decrypt(text, key):
     return result
 
 
-def ceaser_decrypt_hack(text, k):
+def ceaser_decrypt_hack(text):
     KYTU = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
     decryped_msg = []
     for key in range(len(KYTU)):
@@ -38,4 +38,4 @@ def ceaser_decrypt_hack(text, k):
             else:
                 result = result + symbol
         decryped_msg.append(result)
-    return decryped_msg[k]
+    return decryped_msg
