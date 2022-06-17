@@ -236,7 +236,7 @@ def addWaterMark(imgLink, text):
     width, height = base.size
 
     # make a blank image for the text, initialized to transparent text color
-    txt = Image.new('RGBA', base.size, (255,255,255,0))
+    txt = Image.new('RGBA', base.size, (255, 255, 255, 0))
 
     # get a font
     fnt = ImageFont.truetype('arial.ttf', 70)
@@ -247,7 +247,7 @@ def addWaterMark(imgLink, text):
     y = height/2
 
     # draw text, half opacity
-    d.text((x,y), text, font=fnt, fill=(255,255,255,180))
+    d.text((x, y), text, font=fnt, fill=(255, 255, 255, 180))
     txt = txt.rotate(30)
 
     out = Image.alpha_composite(base, txt)
@@ -264,7 +264,8 @@ def file_receiver():
         user_id = request.form.get('userId')
         water_mark = request.form.get('waterMark')
 
-        path = os.path.join(app.config['UPLOAD_FOLDER'], picture.filename + '.png')
+        path = os.path.join(
+            app.config['UPLOAD_FOLDER'], picture.filename + '.png')
         picture.save(path)
 
         # Add the water mark
@@ -285,7 +286,8 @@ def file_receiver():
             db.encode.insert_one(insert_info)
 
         # step four: remove local image due to performance
-        os.remove(os.path.join(app.config['UPLOAD_FOLDER'], picture.filename + '.png'))
+        os.remove(os.path.join(
+            app.config['UPLOAD_FOLDER'], picture.filename + '.png'))
 
         return Response(
             response=json.dumps({
@@ -312,9 +314,11 @@ def file_receiver():
 @app.route("/account/encode-text", methods=[constants.post])
 def encode_text():
     try:
-        #body = request.get_json()
-        text = request.form.get('text')
-        key = request.form.get('key')
+        body = request.get_json()
+        text = body['text']
+        key = body['key']
+        print(text)
+        print(key)
         k = int(key)
 
         encoded_msg = cipher.ceaser_encrypt(text, k)
@@ -338,53 +342,17 @@ def encode_text():
             }),
         )
 
-
-# TO test RSA encryption and decryption
-# @app.route('/rsa-test', methods=[constants.post])
-# #@cross_origin
-# def rsa_test():
-#     try:
-#         message = request.form.get('message')
-#         temp = request.form.get('num')
-
-#         #RSA
-#         public_key, private_key = RSA.generate_keys()
-#         # print("Public key:", public_key)
-#         # print("Private key:", private_key)
-
-#         msg_encoded = RSA.encode(message , public_key)
-#         msg_decoded = RSA.decode(msg_encoded, private_key)
-
-#         return Response(
-#             response=json.dumps({
-#                 "original" : message,
-#                 "encrypted" : msg_encoded,
-#                 "decrypted" : msg_decoded,
-#                 "public_key" : public_key,
-#                 'private_key': private_key
-#             }),
-#             status=200,
-#             mimetype=f"{constants.normal_from}",
-#         )
-
-#     except NameError:
-#         return Response(
-#             status=500,
-#             mimetype=f"{constants.normal_from}",
-#             response=json.dumps({
-#                 "message":NameError.name,
-#             }),
-#         )
-
 #######################################################################
 
 
 @app.route("/account/decode-text", methods=[constants.post])
 def decode_text():
     try:
-        #body = request.get_json()
-        text = request.form.get('text')
-        key = request.form.get('key')
+        body = request.get_json()
+        text = body['text']
+        key = body['key']
+        print(text)
+        print(key)
         k = int(key)
 
         decoded_msg = cipher.ceaser_decrypt(text, k)
@@ -408,45 +376,6 @@ def decode_text():
             }),
         )
 
-
-
-#TO test RSA encryption and decryption
-# @app.route('/rsa-test', methods=[constants.post])
-# #@cross_origin
-# def rsa_test():
-#     try:
-#         message = request.form.get('message')
-#         temp = request.form.get('num')
-
-#         #RSA
-#         public_key, private_key = RSA.generate_keys()
-#         # print("Public key:", public_key)
-#         # print("Private key:", private_key)
-
-#         msg_encoded = RSA.encode(message , public_key)
-#         msg_decoded = RSA.decode(msg_encoded, private_key)
-
-#         return Response(
-#             response=json.dumps({
-#                 "original" : message,
-#                 "encrypted" : msg_encoded,
-#                 "decrypted" : msg_decoded,
-#                 "public_key" : public_key,
-#                 'private_key': private_key
-#             }),
-#             status=200,
-#             mimetype=f"{constants.normal_from}",
-#         )
-
-#     except NameError:
-#         return Response(
-#             status=500,
-#             mimetype=f"{constants.normal_from}",
-#             response=json.dumps({
-#                 "message":NameError.name,
-#             }),
-#         )
-        
 
 #######################################################################
 if __name__ == "__main__":

@@ -82,4 +82,4 @@ def shuffle_item_in_array(init: list[any]) -> list[any]:
 
 
 def get_port() -> int:
-    return 5555
+    return 6200
